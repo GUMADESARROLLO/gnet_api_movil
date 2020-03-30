@@ -11,10 +11,15 @@ class Servicio_controllers extends CI_Controller {
 	public function estadistica_ruta()
     {
 
-        $Empresa            = ($_POST['Empresa']=="UNIMARK") ? 1 : 2;
+        /* $Empresa            = ($_POST['Empresa']=="UNIMARK") ? 1 : 2;
         $Ruta               = $_POST['Ruta'];
         $Mes                = $_POST['Mes'];
-        $anno               = $_POST['Annio'];
+        $anno               = $_POST['Annio'];*/
+
+        $Empresa            = 1;
+        $Ruta               = "F06";
+        $Mes                = "3";
+        $anno               = "2020";
 
 
 

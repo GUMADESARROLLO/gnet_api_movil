@@ -29,12 +29,14 @@ class servicios_model extends CI_Model
         $array = array();
         $i=0;
         foreach($rMoraPorRuta as $key){
+            $Total = $key['Dias30']+$key['Dias60']+$key['Dias90']+$key['Dias120']+$key['Mas120'];
             $array[$i]['NoVencidos']    = "C$ ".number_format($key['NoVencidos'],2);
             $array[$i]['Dias30']        = "C$ ".number_format($key['Dias30'],2);
             $array[$i]['Dias60']        = "C$ ".number_format($key['Dias60'],2);
             $array[$i]['Dias90']        = "C$ ".number_format($key['Dias90'],2);
             $array[$i]['Dias120']       = "C$ ".number_format($key['Dias120'],2);
             $array[$i]['Mas120']        = "C$ ".number_format($key['Mas120'],2);
+            $array[$i]['mTotal']        = "C$ ".number_format($Total,2);
             $i++;
         }
         echo json_encode($array);
@@ -61,6 +63,8 @@ class servicios_model extends CI_Model
         $array = array();
         $i=0;
         foreach($rMoraPorRuta as $key){
+
+
             $array[$i]['Nombre']        = $key['NOMBRE'];
             $array[$i]['NoVencidos']    = "C$ ".number_format($key['NoVencidos'],2);
             $array[$i]['Dias30']        = "C$ ".number_format($key['Dias30'],2);
@@ -144,6 +148,21 @@ class servicios_model extends CI_Model
                                                     WHERE
                                                         IdPeriodo = ( SELECT IdPeriodo FROM [DESARROLLO].[dbo].[gn_periodos] t1 WHERE t1.nMes= '".$Mes."' AND t1.Anno= '".$anno."' AND t1.IdCompany = '".$Empresa."' )  AND t0.CodVendedor='".$Ruta."'",SQLSRV_FETCH_ASSOC);
 
+
+        $qComportamiento = $this->sqlsrv->fetchArray("SELECT
+                                                        (t0.nMes - 1) as Posicion,
+                                                        SUBSTRING('ENE FEB MAR ABR MAY JUN JUL AGO SEP OCT NOV DIC ', (t0.nMes * 4) - 3, 3) AS Mes,
+                                                        ISNULL( SUM ( t0.VENTA ), 0 ) AS VENTA_REAL
+                                                        FROM
+                                                            Softland.DBO.VtasTotal_UMK t0 
+                                                        WHERE	
+                                                            t0.[año] = YEAR(GETDATE())
+                                                            AND t0.Ruta= '".$Ruta."'
+                                                            AND t0.Venta > 0
+                                                            GROUP BY t0.nMes");
+
+
+
         $array = array();
         $i=0;
 
@@ -168,9 +187,30 @@ class servicios_model extends CI_Model
         $array['data_venta_cantidad'][$i]['mRetal']        = number_format($Real_cantidad,0);
         $array['data_venta_cantidad'][$i]['mCumpliento']   = number_format((100 * $Real_cantidad) / $Meta_cantidad,2);
 
+        foreach($qComportamiento as $key){
 
+            $Real_monto        = $key['VENTA_REAL'];
+            $Meta_monto        = floatval($this->getPerMesRuta($Empresa,$Ruta,$key['Posicion'] +1));
+
+            $array['data_comportamiento'][$i]['Posicion']    = number_format($key['Posicion'],0);
+            $array['data_comportamiento'][$i]['Mes']         = $key['Mes'];
+            $array['data_comportamiento'][$i]['mCumpliento']   = number_format((100 * $Real_monto) / $Meta_monto,2);
+
+            $i++;
+        }
         echo json_encode($array);
         $this->sqlsrv->close();
+    }
+    function getPerMesRuta($Empresa,$Ruta,$Mes){
+        $qVENTA_META = $this->sqlsrv->fetchArray("SELECT
+                                                        ISNULL(SUM(t0.val), 0) as VENTA_META
+                                                    FROM
+                                                        [DESARROLLO].[dbo].[gn_cuota_x_productos] t0 
+                                                    WHERE
+                                                        IdPeriodo = ( SELECT IdPeriodo FROM [DESARROLLO].[dbo].[gn_periodos] t1 WHERE t1.nMes= '".$Mes."' AND t1.Anno= YEAR(GETDATE())  AND t1.IdCompany = '".$Empresa."' )  AND t0.CodVendedor='".$Ruta."'",SQLSRV_FETCH_ASSOC);
+        return $qVENTA_META[0]['VENTA_META'];
+        $this->sqlsrv->close();
+
     }
     public function estadistica_articulos_ruta($Empresa,$Ruta,$Mes,$anno,$Filtro,$Grafica)
     {
