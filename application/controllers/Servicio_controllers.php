@@ -68,7 +68,8 @@ class Servicio_controllers extends CI_Controller {
         $Ruta                   = $_POST['Ruta'];
 
 
-        //$DiasMora           = intval("90");
+        /*$DiasMora           = intval("130");
+        $Ruta                   = "F06";*/
         $this->servicios_model->facturas_vencidas($DiasMora,$Ruta);
     }
 

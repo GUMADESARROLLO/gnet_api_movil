@@ -100,8 +100,9 @@ class servicios_model extends CI_Model
         }elseif($DiasMora == 120){
             $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos BETWEEN 91 AND 120)";
         }elseif($DiasMora > 120){
-            $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos BETWEEN > ".$DiasMora.")";
+            $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos >= ".$DiasMora.")";
         }
+
 
         $rMoraPorCliente = $this->sqlsrv->fetchArray($qMoraPorCliente);
 
