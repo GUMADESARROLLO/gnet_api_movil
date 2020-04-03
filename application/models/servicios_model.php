@@ -177,7 +177,7 @@ class servicios_model extends CI_Model
 
         $array['data_venta_monto'][$i]['mMeta']         = number_format($Meta_monto,2);
         $array['data_venta_monto'][$i]['mRetal']        = number_format($Real_monto,2);
-        $array['data_venta_monto'][$i]['mCumpliento']   = number_format((100 * $Real_monto) / $Meta_monto,2);
+        $array['data_venta_monto'][$i]['mCumpliento']   = (number_format($Meta_monto,0)==0) ? 0 : number_format((100 * $Real_monto) / $Meta_monto,2);
 
         // META DE VENTA EN CANTIDAD
         $Meta_cantidad = $qVENTA_META[0]['META_items'];
@@ -185,7 +185,7 @@ class servicios_model extends CI_Model
 
         $array['data_venta_cantidad'][$i]['mMeta']         = number_format($Meta_cantidad,2);
         $array['data_venta_cantidad'][$i]['mRetal']        = number_format($Real_cantidad,0);
-        $array['data_venta_cantidad'][$i]['mCumpliento']   = number_format((100 * $Real_cantidad) / $Meta_cantidad,2);
+        $array['data_venta_cantidad'][$i]['mCumpliento']   = (number_format($Meta_cantidad,0)==0) ? 0 : number_format((100 * $Real_cantidad) / $Meta_cantidad,2);
 
         foreach($qComportamiento as $key){
 
@@ -217,14 +217,15 @@ class servicios_model extends CI_Model
         $i=0;
         $inArticulos ="";
         $rtnArticulo=array();
-
-
-        $qVENTA_META = $this->sqlsrv->fetchArray("SELECT
+          $qVENTA_META = $this->sqlsrv->fetchArray("SELECT
                                                         CodProducto,NombreProducto,sum(val) as val, sum(Meta) as Meta
                                                     FROM
                                                         [DESARROLLO].[dbo].[gn_cuota_x_productos] t0 
                                                     WHERE
                                                         IdPeriodo = ( SELECT IdPeriodo FROM [DESARROLLO].[dbo].[gn_periodos] t1 WHERE t1.nMes= '".$Mes."' AND t1.Anno= '".$anno."' AND t1.IdCompany = '".$Empresa."' )  AND t0.CodVendedor='".$Ruta."' GROUP BY CodProducto,NombreProducto",SQLSRV_FETCH_ASSOC);
+
+
+
 
 
         foreach($qVENTA_META as $key){
@@ -298,18 +299,12 @@ class servicios_model extends CI_Model
                 $i++;
             }
 
-
-
-
-
-
-
         }
         //ARTICULOS VENDIDOS NO DEFINIDOS DENTRO DE LA MENTA Y FUERON FACTURADOS
+
+
         $inArticulos = substr($inArticulos,0,-1);
         $View            = $this->view($Empresa);
-
-
         $Q = "SELECT
                                                      ARTICULO,DESCRIPCION,SUM(Venta) AS Venta,SUM(CANTIDAD) AS CANTIDAD
                                                     FROM
@@ -321,33 +316,42 @@ class servicios_model extends CI_Model
                                                         AND t0.ARTICULO not in (".$inArticulos.")
                                                         AND t0.Venta > 0
                                                         GROUP BY 	ARTICULO,DESCRIPCION";
-        $qVENTA_NO_EN_META = $this->sqlsrv->fetchArray($Q,SQLSRV_FETCH_ASSOC);
 
-        foreach($qVENTA_NO_EN_META as $key){
 
-            $Meta_Monto = "0";
-            $Real_Monto = $key['Venta'];
-            $Meta_cantidad = "0";
-            $Real_cantidad = $key['CANTIDAD'];
-
-            if($Grafica == "Monto" || $Grafica==""){
-                if($Filtro=="REAL" || $Filtro==""){
-                    $rtnArticulo[$i]['mCodigo']      = $key['ARTICULO'];
-                    $rtnArticulo[$i]['mName']        = strtoupper($key['DESCRIPCION'])."(No def. en meta)";
-                    $rtnArticulo[$i]['mMeta_monto']  = number_format($Meta_Monto,2,'.','');
-                    $rtnArticulo[$i]['mReal_monto']  = number_format($Real_Monto,2,'.','');
-                    $rtnArticulo[$i]['mcump_monto']  = ($Meta_Monto=="0") ? "0" : number_format((100 * $Real_Monto) / $Meta_Monto,2);
-                    $rtnArticulo[$i]['mMeta_canti']  = number_format($Meta_cantidad,0,'.','');
-                    $rtnArticulo[$i]['mReal_canti']  = number_format($Real_cantidad,0,'.','');
-                    $rtnArticulo[$i]['mcump_canti']  = ($Meta_cantidad=="0") ? "0" : number_format((100 * $Real_cantidad) / $Meta_cantidad,2);
-                    $i++;
+        if(count($qVENTA_META) > 0){
+            $qVENTA_NO_EN_META = $this->sqlsrv->fetchArray($Q,SQLSRV_FETCH_ASSOC);
+            foreach($qVENTA_NO_EN_META as $key){
+                $Meta_Monto = "0";
+                $Real_Monto = $key['Venta'];
+                $Meta_cantidad = "0";
+                $Real_cantidad = $key['CANTIDAD'];
+                if($Grafica == "Monto" || $Grafica==""){
+                    if($Filtro=="REAL" || $Filtro==""){
+                        $rtnArticulo[$i]['mCodigo']      = $key['ARTICULO'];
+                        $rtnArticulo[$i]['mName']        = strtoupper($key['DESCRIPCION'])."(No def. en meta)";
+                        $rtnArticulo[$i]['mMeta_monto']  = number_format($Meta_Monto,2,'.','');
+                        $rtnArticulo[$i]['mReal_monto']  = number_format($Real_Monto,2,'.','');
+                        $rtnArticulo[$i]['mcump_monto']  = ($Meta_Monto=="0") ? "0" : number_format((100 * $Real_Monto) / $Meta_Monto,2);
+                        $rtnArticulo[$i]['mMeta_canti']  = number_format($Meta_cantidad,0,'.','');
+                        $rtnArticulo[$i]['mReal_canti']  = number_format($Real_cantidad,0,'.','');
+                        $rtnArticulo[$i]['mcump_canti']  = ($Meta_cantidad=="0") ? "0" : number_format((100 * $Real_cantidad) / $Meta_cantidad,2);
+                        $i++;
+                    }
                 }
             }
-
-
-
-
+        }else{
+            $rtnArticulo[$i]['mCodigo']      = "-";
+            $rtnArticulo[$i]['mName']        = "Sin Datos";
+            $rtnArticulo[$i]['mMeta_monto']  = "0";
+            $rtnArticulo[$i]['mReal_monto']  = "0";
+            $rtnArticulo[$i]['mcump_monto']  = "0";
+            $rtnArticulo[$i]['mMeta_canti']  = "0";
+            $rtnArticulo[$i]['mReal_canti']  = "0";
+            $rtnArticulo[$i]['mcump_canti']  = "0";
         }
+
+
+
 
      echo json_encode($rtnArticulo);
         $this->sqlsrv->close();
