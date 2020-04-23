@@ -9,10 +9,16 @@ class servicios_model extends CI_Model
     private function view($Empresa){
       return ($Empresa == 1) ?  "VtasTotal_UMK" : "GP_VtasTotal_UMK";
     }
+    private function view_factura_vencida($Empresa){
+        return ($Empresa == 1) ?  "APK_CxC_DocVenxCL" : "GP_APK_CxC_DocVenxCL";
+    }
 
     public function mora_por_ruta($Empresa,$Ruta){
+        $array = array();
+        $i=0;
 
-        $qMoraPorRuta="SELECT
+        if(($Empresa == 1)){
+            $qMoraPorRuta="SELECT
                             SUM(T0.NoVencidos) AS NoVencidos,
                             SUM(T0.Dias30) AS Dias30,
                             SUM(T0.Dias60) AS Dias60,
@@ -24,28 +30,68 @@ class servicios_model extends CI_Model
                         WHERE
                             T0.VENDEDOR = '".$Ruta."'";
 
-        $rMoraPorRuta = $this->sqlsrv->fetchArray($qMoraPorRuta);
+            $rMoraPorRuta = $this->sqlsrv->fetchArray($qMoraPorRuta);
 
-        $array = array();
-        $i=0;
-        foreach($rMoraPorRuta as $key){
-            $Total = $key['Dias30']+$key['Dias60']+$key['Dias90']+$key['Dias120']+$key['Mas120'];
-            $array[$i]['NoVencidos']    = "C$ ".number_format($key['NoVencidos'],2);
-            $array[$i]['Dias30']        = "C$ ".number_format($key['Dias30'],2);
-            $array[$i]['Dias60']        = "C$ ".number_format($key['Dias60'],2);
-            $array[$i]['Dias90']        = "C$ ".number_format($key['Dias90'],2);
-            $array[$i]['Dias120']       = "C$ ".number_format($key['Dias120'],2);
-            $array[$i]['Mas120']        = "C$ ".number_format($key['Mas120'],2);
-            $array[$i]['mTotal']        = "C$ ".number_format($Total,2);
-            $i++;
+
+            foreach($rMoraPorRuta as $key){
+                $Total = $key['Dias30']+$key['Dias60']+$key['Dias90']+$key['Dias120']+$key['Mas120'];
+                $array[$i]['NoVencidos']    = "C$ ".number_format($key['NoVencidos'],2);
+                $array[$i]['Dias30']        = "C$ ".number_format($key['Dias30'],2);
+                $array[$i]['Dias60']        = "C$ ".number_format($key['Dias60'],2);
+                $array[$i]['Dias90']        = "C$ ".number_format($key['Dias90'],2);
+                $array[$i]['Dias120']       = "C$ ".number_format($key['Dias120'],2);
+                $array[$i]['Mas120']        = "C$ ".number_format($key['Mas120'],2);
+                $array[$i]['mTotal']        = "C$ ".number_format($Total,2);
+                $i++;
+            }
+
+        }else{
+            $qMoraPorRuta="SELECT
+                            SUM(T0.NoVencidos) AS NoVencidos,
+                            SUM(T0.Dias30) AS Dias30,
+                            SUM(T0.Dias45) AS Dias45,
+                            SUM(T0.Dias60) AS Dias60,
+                            SUM(T0.Dias90) AS Dias90,
+                            SUM(T0.Dias120) AS Dias120,
+                            SUM(T0.Dias150) AS Dias150,
+                            SUM(T0.Mas150) AS Mas150 
+                        FROM
+                            GP_View_ClientesPerMora T0 
+                        WHERE
+                            T0.VENDEDOR = '".$Ruta."'";
+
+            $rMoraPorRuta = $this->sqlsrv->fetchArray($qMoraPorRuta);
+
+
+            foreach($rMoraPorRuta as $key){
+
+                $Total = $key['Dias30']+$key['Dias45']+$key['Dias60']+$key['Dias90']+$key['Dias120']+$key['Dias150']+$key['Mas150'];
+
+                $array[$i]['NoVencidos']    = "C$ ".number_format($key['NoVencidos'],2);
+                $array[$i]['Dias30']        = "C$ ".number_format($key['Dias30'],2);
+                $array[$i]['Dias45']        = "C$ ".number_format($key['Dias45'],2);
+                $array[$i]['Dias60']        = "C$ ".number_format($key['Dias60'],2);
+                $array[$i]['Dias90']        = "C$ ".number_format($key['Dias90'],2);
+                $array[$i]['Dias120']       = "C$ ".number_format($key['Dias120'],2);
+                $array[$i]['Dias150']       = "C$ ".number_format($key['Dias150'],2);
+                $array[$i]['Mas150']        = "C$ ".number_format($key['Mas150'],2);
+                $array[$i]['mTotal']        = "C$ ".number_format($Total,2);
+                $i++;
+            }
+
         }
+
         echo json_encode($array);
         $this->sqlsrv->close();
 
     }
     public function mora_por_cliente($Empresa,$Ruta){
 
-        $qMoraPorRuta="SELECT
+        $array = array();
+        $i=0;
+
+        if($Empresa == 1){
+            $qMoraPorRuta="SELECT
                             T0.NOMBRE,
                             T0.NoVencidos,
                             T0.Dias30,
@@ -58,27 +104,64 @@ class servicios_model extends CI_Model
                         WHERE
                             T0.VENDEDOR = '".$Ruta."'";
 
-        $rMoraPorRuta = $this->sqlsrv->fetchArray($qMoraPorRuta);
+            $rMoraPorRuta = $this->sqlsrv->fetchArray($qMoraPorRuta);
 
-        $array = array();
-        $i=0;
-        foreach($rMoraPorRuta as $key){
+            foreach($rMoraPorRuta as $key){
 
 
-            $array[$i]['Nombre']        = $key['NOMBRE'];
-            $array[$i]['NoVencidos']    = "C$ ".number_format($key['NoVencidos'],2);
-            $array[$i]['Dias30']        = "C$ ".number_format($key['Dias30'],2);
-            $array[$i]['Dias60']        = "C$ ".number_format($key['Dias60'],2);
-            $array[$i]['Dias90']        = "C$ ".number_format($key['Dias90'],2);
-            $array[$i]['Dias120']       = "C$ ".number_format($key['Dias120'],2);
-            $array[$i]['Mas120']        = "C$ ".number_format($key['Mas120'],2);
-            $i++;
+                $array[$i]['Nombre']        = $key['NOMBRE'];
+                $array[$i]['NoVencidos']    = "C$ ".number_format($key['NoVencidos'],2);
+                $array[$i]['Dias30']        = "C$ ".number_format($key['Dias30'],2);
+                $array[$i]['Dias60']        = "C$ ".number_format($key['Dias60'],2);
+                $array[$i]['Dias90']        = "C$ ".number_format($key['Dias90'],2);
+                $array[$i]['Dias120']       = "C$ ".number_format($key['Dias120'],2);
+                $array[$i]['Mas120']        = "C$ ".number_format($key['Mas120'],2);
+                $i++;
+            }
+        }else{
+            $qMoraPorRuta="SELECT
+                            T0.NOMBRE,
+                            T0.NoVencidos,
+                            T0.Dias30,
+                            T0.Dias45,
+                            T0.Dias60,
+                            T0.Dias90,
+                            T0.Dias120,
+                            T0.Dias150,
+                            T0.Mas150 
+                        FROM
+                            GP_View_ClientesPerMora T0 
+                        WHERE
+                            T0.VENDEDOR = '".$Ruta."'";
+
+            $rMoraPorRuta = $this->sqlsrv->fetchArray($qMoraPorRuta);
+
+            foreach($rMoraPorRuta as $key){
+
+
+                $array[$i]['Nombre']        = $key['NOMBRE'];
+                $array[$i]['NoVencidos']    = "C$ ".number_format($key['NoVencidos'],2);
+                $array[$i]['Dias30']        = "C$ ".number_format($key['Dias30'],2);
+                $array[$i]['Dias45']        = "C$ ".number_format($key['Dias45'],2);
+                $array[$i]['Dias60']        = "C$ ".number_format($key['Dias60'],2);
+                $array[$i]['Dias90']        = "C$ ".number_format($key['Dias90'],2);
+                $array[$i]['Dias120']       = "C$ ".number_format($key['Dias120'],2);
+                $array[$i]['Dias150']       = "C$ ".number_format($key['Dias150'],2);
+                $array[$i]['Mas150']        = "C$ ".number_format($key['Mas150'],2);
+                $i++;
+            }
         }
+
+
+
+
         echo json_encode($array);
         $this->sqlsrv->close();
 
     }
-    public function facturas_vencidas($DiasMora,$Ruta){
+    public function facturas_vencidas($DiasMora,$Ruta,$Empresa){
+
+
 
         $qMoraPorCliente="SELECT
                             T0.CLIENTE,
@@ -91,21 +174,42 @@ class servicios_model extends CI_Model
                             T0.DVencidos,
                             T0.SALDO_LOCAL 
                         FROM
-                            Softland.dbo.APK_CxC_DocVenxCL T0 WHERE T0.VENDEDOR= '".$Ruta."'";
+                            Softland.dbo.".$this->view_factura_vencida($Empresa)." T0 WHERE T0.VENDEDOR= '".$Ruta."'";
 
-        if($DiasMora <= 0){
-            $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos < 0)";
-        }elseif($DiasMora == 30){
-            $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos BETWEEN 1 AND 30)";
-        }elseif($DiasMora == 60){
-            $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos BETWEEN 31 AND 60)";
-        }elseif($DiasMora == 90){
-            $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos BETWEEN 61 AND 90)";
-        }elseif($DiasMora == 120){
-            $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos BETWEEN 91 AND 120)";
-        }elseif($DiasMora > 120){
-            $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos >= ".$DiasMora.")";
+        if($Empresa==1){
+            if($DiasMora <= 0){
+                $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos < 0)";
+            }elseif($DiasMora == 30){
+                $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos BETWEEN 1 AND 30)";
+            }elseif($DiasMora == 60){
+                $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos BETWEEN 31 AND 60)";
+            }elseif($DiasMora == 90){
+                $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos BETWEEN 61 AND 90)";
+            }elseif($DiasMora == 120){
+                $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos BETWEEN 91 AND 120)";
+            }elseif($DiasMora > 120){
+                $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos >= ".$DiasMora.")";
+            }
+        }else{
+            if($DiasMora <= 0){
+                $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos < 0)";
+            }elseif($DiasMora == 30){
+                $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos BETWEEN 1 AND 30)";
+            }elseif($DiasMora == 45){
+                $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos BETWEEN 31 AND 45)";
+            }elseif($DiasMora == 60){
+                $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos BETWEEN 46 AND 60)";
+            }elseif($DiasMora == 90){
+                $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos BETWEEN 61 AND 90)";
+            }elseif($DiasMora == 120){
+                $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos BETWEEN 91 AND 120)";
+            }elseif($DiasMora == 150){
+                $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos BETWEEN 121 AND 150)";
+            }elseif($DiasMora > 150){
+                $qMoraPorCliente .= " AND (T0.TIPO <> 'N/C') AND (T0.DVencidos >= ".$DiasMora.")";
+            }
         }
+
 
 
         $rMoraPorCliente = $this->sqlsrv->fetchArray($qMoraPorCliente);
@@ -128,8 +232,11 @@ class servicios_model extends CI_Model
     }
 
 
+
+
     public function estadistica_ruta($Empresa,$Ruta,$Mes,$anno)
     {
+
         $qVENTA_REAL = $this->sqlsrv->fetchArray("SELECT
                                                       ISNULL(SUM(t0.VENTA), 0) as VENTA_REAL,
                                                       ISNULL(SUM(t0.CANTIDAD), 0) as VENTA_REAL_CANTIDAD
@@ -138,7 +245,7 @@ class servicios_model extends CI_Model
                                                     WHERE
                                                         t0.nMes= '".$Mes."' 
                                                         AND t0.[año] = '".$anno."' 
-                                                        AND t0.Ruta= '".$Ruta."' AND t0.Venta> 0",SQLSRV_FETCH_ASSOC);
+                                                        AND t0.Ruta= '".$Ruta."' AND t0.Venta > 0",SQLSRV_FETCH_ASSOC);
 
         $qVENTA_META = $this->sqlsrv->fetchArray("SELECT
                                                         ISNULL(SUM(t0.val), 0) as VENTA_META,
@@ -194,7 +301,7 @@ class servicios_model extends CI_Model
 
             $array['data_comportamiento'][$i]['Posicion']    = number_format($key['Posicion'],0);
             $array['data_comportamiento'][$i]['Mes']         = $key['Mes'];
-            $array['data_comportamiento'][$i]['mCumpliento']   = number_format((100 * $Real_monto) / $Meta_monto,2);
+            @$array['data_comportamiento'][$i]['mCumpliento']   = number_format((100 * $Real_monto) / $Meta_monto,2);
 
             $i++;
         }

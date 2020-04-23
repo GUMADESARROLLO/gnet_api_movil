@@ -16,8 +16,8 @@ class Servicio_controllers extends CI_Controller {
         $Mes                = $_POST['Mes'];
         $anno               = $_POST['Annio'];
 
-        /*$Empresa            = 1;
-        $Ruta               = "F06";
+       /* $Empresa            = 2;
+        $Ruta               = "F10";
         $Mes                = "4";
         $anno               = "2020";*/
 
@@ -55,7 +55,7 @@ class Servicio_controllers extends CI_Controller {
         $Empresa            = ($_POST['Empresa']=="UNIMARK") ? 1 : 2;
         $Ruta               = $_POST['Ruta'];
 
-        /*$Empresa            = 1;
+       /* $Empresa            = 2;
         $Ruta               = "F06";*/
 
 
@@ -78,11 +78,13 @@ class Servicio_controllers extends CI_Controller {
 
         $DiasMora               = intval($_POST['DiasMora']);
         $Ruta                   = $_POST['Ruta'];
+        $Empresa                = ($_POST['Empresa']=="UNIMARK") ? 1 : 2;
 
 
-        /*$DiasMora           = intval("130");
-        $Ruta                   = "F06";*/
-        $this->servicios_model->facturas_vencidas($DiasMora,$Ruta);
+        /*$DiasMora           = intval("150");
+        $Ruta               = "F06";
+        $Empresa            = 2;*/
+        $this->servicios_model->facturas_vencidas($DiasMora,$Ruta,$Empresa);
     }
 
 
